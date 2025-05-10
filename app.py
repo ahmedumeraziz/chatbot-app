@@ -7,6 +7,8 @@ from deep_translator import GoogleTranslator
 
 # Load model and GROQ API key from secrets
 embedder = SentenceTransformer("all-MiniLM-L6-v2")
+embedder = embedder.to("cpu")  # Force CPU usage to avoid Streamlit Cloud GPU errors
+
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 GROQ_MODEL = "llama3-8b-8192"
 GOOGLE_DOC_URL = "https://docs.google.com/document/d/196veS3lJcHJ7iJDSN47nnWO9XKHVoxBrSwtSCD8lvUM/edit?usp=sharing"
@@ -101,10 +103,9 @@ if not st.session_state.ready:
         except Exception as e:
             st.error(f"❌ Failed to process document: {e}")
 
-# Custom CSS and JS for fixed input and scrollable chat
+# --- Chat UI ---
 st.markdown("""
     <style>
-        /* Container to fix bot size */
         .chat-wrapper {
             width: 300px;
             height: 500px;
@@ -180,19 +181,9 @@ st.markdown("""
             cursor: pointer;
             font-size: 14px;
         }
-
-        .chat-container::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .chat-container::-webkit-scrollbar-thumb {
-            background-color: rgba(0, 0, 0, 0.2);
-            border-radius: 3px;
-        }
     </style>
 """, unsafe_allow_html=True)
 
-# Chat interface
 if st.session_state.ready:
     st.markdown('<div class="chat-wrapper">', unsafe_allow_html=True)
     
