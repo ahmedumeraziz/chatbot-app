@@ -8,21 +8,24 @@ from deep_translator import GoogleTranslator
 # Custom CSS for chat interface
 st.markdown("""
 <style>
+/* Main container */
 .chat-container {
-    display: flex;
-    flex-direction: column;
-    height: 70vh;
-    width: 100%;
-    margin: 0 auto;
-    background-color: #fafafa;
+    position: fixed;
+    top: 100px;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 800px;
+    background-color: #ffffff;
     border-radius: 10px;
-    position: relative;
-    border: 1px solid #e0e0e0;
-    margin-bottom: 20px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
+/* Scrollable chat area */
 .chat-messages {
-    flex: 1;
+    height: 100%;
     overflow-y: auto;
     padding: 20px;
     display: flex;
@@ -30,6 +33,7 @@ st.markdown("""
     gap: 15px;
 }
 
+/* Message bubbles */
 .message {
     max-width: 80%;
     padding: 12px 16px;
@@ -53,15 +57,24 @@ st.markdown("""
     border-bottom-left-radius: 4px;
 }
 
-.input-area {
-    position: sticky;
+/* Fixed input footer */
+.input-footer {
+    position: fixed;
     bottom: 0;
-    padding: 15px;
-    background-color: white;
-    border-top: 1px solid #ddd;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 15px 0;
+    border-top: 1px solid #e0e0e0;
+    z-index: 1000;
+}
+
+.input-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
     display: flex;
     gap: 10px;
-    align-items: center;
 }
 
 .message-input {
@@ -73,13 +86,9 @@ st.markdown("""
     font-size: 14px;
 }
 
-.message-input:focus {
-    border-color: #007bff;
-}
-
 .send-button {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     background-color: #007bff;
     color: white;
@@ -96,13 +105,18 @@ st.markdown("""
 }
 
 .send-icon {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
 }
 
-.stSpinner > div {
+/* Adjust Streamlit default styles */
+.stApp {
+    background-color: #f5f5f5 !important;
+}
+
+.stTitle {
     text-align: center;
-    margin-top: 20px;
+    padding: 20px 0 !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -218,27 +232,36 @@ if not st.session_state.ready:
 st.title("📞 CRM Assistant")
 
 # Chat container
-with st.container():
-    st.markdown('<div class="chat-container">', unsafe_allow_html=True)
-    st.markdown('<div class="chat-messages">', unsafe_allow_html=True)
+st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+st.markdown('<div class="chat-messages">', unsafe_allow_html=True)
 
-    for sender, msg in st.session_state.chat_history:
-        if sender == "You":
-            st.markdown(f'<div class="message user-message">{msg}</div>', unsafe_allow_html=True)
-        else:
-            st.markdown(f'<div class="message bot-message">{msg}</div>', unsafe_allow_html=True)
+for sender, msg in st.session_state.chat_history:
+    if sender == "You":
+        st.markdown(f'<div class="message user-message">{msg}</div>', unsafe_allow_html=True)
+    else:
+        st.markdown(f'<div class="message bot-message">{msg}</div>', unsafe_allow_html=True)
 
-    st.markdown('</div>', unsafe_allow_html=True)  # Close chat-messages
+st.markdown('</div>', unsafe_allow_html=True)  # Close chat-messages
+st.markdown('</div>', unsafe_allow_html=True)  # Close chat-container
 
-    # Input area with standard Streamlit form
-    with st.form("chat_form", clear_on_submit=True):
-        cols = st.columns([0.85, 0.15])
-        with cols[0]:
-            user_input = st.text_input("Your message:", key="user_input", label_visibility="collapsed", placeholder="Type your message...")
-        with cols[1]:
-            submitted = st.form_submit_button("➤", use_container_width=True)
-        
-    st.markdown('</div>', unsafe_allow_html=True)  # Close chat-container
+# Fixed input footer
+with st.form("chat_form", clear_on_submit=True):
+    st.markdown('<div class="input-footer">', unsafe_allow_html=True)
+    st.markdown('<div class="input-wrapper">', unsafe_allow_html=True)
+    
+    cols = st.columns([0.85, 0.15])
+    with cols[0]:
+        user_input = st.text_input(
+            "Your message:",
+            key="user_input",
+            label_visibility="collapsed",
+            placeholder="Type your message..."
+        )
+    with cols[1]:
+        submitted = st.form_submit_button("Send", use_container_width=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # Handle form submission
 if submitted and user_input:
