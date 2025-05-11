@@ -18,6 +18,7 @@ st.markdown("""
     border-radius: 10px;
     position: relative;
     border: 1px solid #e0e0e0;
+    margin-bottom: 20px;
 }
 
 .chat-messages {
@@ -217,43 +218,31 @@ if not st.session_state.ready:
 st.title("📞 CRM Assistant")
 
 # Chat container
-st.markdown('<div class="chat-container">', unsafe_allow_html=True)
-st.markdown('<div class="chat-messages">', unsafe_allow_html=True)
+with st.container():
+    st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+    st.markdown('<div class="chat-messages">', unsafe_allow_html=True)
 
-for sender, msg in st.session_state.chat_history:
-    if sender == "You":
-        st.markdown(f'<div class="message user-message">{msg}</div>', unsafe_allow_html=True)
-    else:
-        st.markdown(f'<div class="message bot-message">{msg}</div>', unsafe_allow_html=True)
+    for sender, msg in st.session_state.chat_history:
+        if sender == "You":
+            st.markdown(f'<div class="message user-message">{msg}</div>', unsafe_allow_html=True)
+        else:
+            st.markdown(f'<div class="message bot-message">{msg}</div>', unsafe_allow_html=True)
 
-st.markdown('</div>', unsafe_allow_html=True)  # Close chat-messages
+    st.markdown('</div>', unsafe_allow_html=True)  # Close chat-messages
 
-# Input area
-st.markdown("""
-<div class="input-area">
-    <form id="chat_form" class="stForm" style="width: 100%; display: flex; gap: 10px; align-items: center;">
-        <input type="text" name="user_input" class="message-input" placeholder="Type your message..." autocomplete="off">
-        <button type="submit" class="send-button">
-            <svg class="send-icon" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
-            </svg>
-        </button>
-    </form>
-</div>
-""", unsafe_allow_html=True)
-
-st.markdown('</div>', unsafe_allow_html=True)  # Close chat-container
+    # Input area with standard Streamlit form
+    with st.form("chat_form", clear_on_submit=True):
+        cols = st.columns([0.85, 0.15])
+        with cols[0]:
+            user_input = st.text_input("Your message:", key="user_input", label_visibility="collapsed", placeholder="Type your message...")
+        with cols[1]:
+            submitted = st.form_submit_button("➤", use_container_width=True)
+        
+    st.markdown('</div>', unsafe_allow_html=True)  # Close chat-container
 
 # Handle form submission
-if st._is_running_with_streamlit:
-    from streamlit.runtime.scriptrunner import get_script_run_ctx
-    ctx = get_script_run_ctx()
-    if ctx and hasattr(ctx, 'form_data'):
-        form_data = ctx.form_data
-        if 'chat_form' in form_data:
-            user_input = form_data['chat_form']['user_input']
-            if user_input:
-                answer = generate_response(user_input)
-                st.session_state.chat_history.append(("You", user_input))
-                st.session_state.chat_history.append(("AI", answer))
-                st.rerun()
+if submitted and user_input:
+    answer = generate_response(user_input)
+    st.session_state.chat_history.append(("You", user_input))
+    st.session_state.chat_history.append(("AI", answer))
+    st.rerun()
