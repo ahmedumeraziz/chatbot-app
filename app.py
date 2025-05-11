@@ -5,11 +5,11 @@ import numpy as np
 from langdetect import detect
 from deep_translator import GoogleTranslator
 
-# Load model and force CPU (avoid GPU error on Streamlit Cloud)
+# Load embedder model and force CPU
 embedder = SentenceTransformer("all-MiniLM-L6-v2")
 embedder = embedder.to("cpu")
 
-# Use secret API key
+# Load GROQ API Key from Streamlit Secrets
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 GROQ_MODEL = "llama3-8b-8192"
 GOOGLE_DOC_URL = "https://docs.google.com/document/d/196veS3lJcHJ7iJDSN47nnWO9XKHVoxBrSwtSCD8lvUM/edit?usp=sharing"
@@ -24,6 +24,7 @@ if "doc_embeddings" not in st.session_state:
 if "ready" not in st.session_state:
     st.session_state.ready = False
 
+# Translation
 def translate_to_english(text):
     try:
         detected_lang = detect(text)
@@ -33,12 +34,14 @@ def translate_to_english(text):
     except:
         return text
 
+# Get Google Doc Text
 def get_text_from_google_doc(doc_url):
     doc_id = doc_url.split("/d/")[1].split("/")[0]
     export_url = f"https://docs.google.com/document/d/{doc_id}/export?format=txt"
     response = requests.get(export_url)
     return response.text
 
+# Chunk + Embed
 def chunk_text(text, chunk_size=200):
     words = text.split()
     return [" ".join(words[i:i+chunk_size]) for i in range(0, len(words), chunk_size)]
@@ -52,6 +55,7 @@ def get_relevant_chunks(query, k=3):
     top_k = np.argsort(scores)[-k:][::-1]
     return [st.session_state.documents[i] for i in top_k]
 
+# Generate reply from GROQ
 def generate_response(query):
     query = translate_to_english(query)
     context = "\n".join(get_relevant_chunks(query))
@@ -86,7 +90,7 @@ Answer:"""
     except Exception as e:
         return f"Error: {e}"
 
-# Load document
+# Load document once
 if not st.session_state.ready:
     with st.spinner("Connecting to the Agent..."):
         try:
@@ -100,12 +104,13 @@ if not st.session_state.ready:
         except Exception as e:
             st.error(f"❌ Failed to process document: {e}")
 
-# UI
+# --- Interface ---
 st.markdown("""
     <style>
         .chat-wrapper {
-            width: 300px;
-            height: 500px;
+            width: 100%;
+            max-width: 400px;
+            height: 600px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -122,6 +127,15 @@ st.markdown("""
             overflow-y: auto;
             padding: 10px;
             background-color: #f1f0f0;
+        }
+
+        .chat-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
         }
 
         .message {
@@ -152,44 +166,29 @@ st.markdown("""
         .input-box {
             height: 60px;
             flex-shrink: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             padding: 8px;
             background: white;
             border-top: 1px solid #ccc;
         }
 
-        .input-box input {
-            width: 70%;
-            padding: 8px 10px;
-            font-size: 14px;
-            border-radius: 20px;
-            border: 1px solid #ccc;
-        }
-
-        .input-box button {
-            padding: 8px 14px;
-            margin-left: 8px;
-            background-color: #0084ff;
-            border: none;
-            color: white;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
+        .stTextInput>div>div>input {
+            border-radius: 20px !important;
+            padding: 10px 15px !important;
         }
     </style>
 """, unsafe_allow_html=True)
 
 if st.session_state.ready:
     st.markdown('<div class="chat-wrapper">', unsafe_allow_html=True)
-    
+
+    # Chat area
     st.markdown('<div class="chat-container">', unsafe_allow_html=True)
     for sender, msg in st.session_state.chat_history:
         role_class = "user" if sender == "You" else "ai"
         st.markdown(f'<div class="message {role_class}">{msg}</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
+    # Auto-scroll to bottom
     st.markdown("""
         <script>
             setTimeout(function() {
@@ -201,10 +200,14 @@ if st.session_state.ready:
         </script>
     """, unsafe_allow_html=True)
 
+    # Input form
     with st.form("chat_form", clear_on_submit=True):
         st.markdown('<div class="input-box">', unsafe_allow_html=True)
-        user_input = st.text_input("Type your message", placeholder="How may I help you?", label_visibility="collapsed")
-        submitted = st.form_submit_button("Send")
+        col1, col2 = st.columns([5, 1])
+        with col1:
+            user_input = st.text_input("", placeholder="Type your message...", label_visibility="collapsed")
+        with col2:
+            submitted = st.form_submit_button("➤")
         st.markdown('</div>', unsafe_allow_html=True)
 
     if submitted and user_input:
