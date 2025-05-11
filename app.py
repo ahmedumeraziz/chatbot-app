@@ -58,7 +58,7 @@ st.markdown("""
 .input-wrapper {
     max-width: 800px;
     margin: 0 auto;
-    padding: 5px 20px 10px 20px;  /* Top padding reduced to 5px */
+    padding: 5px 5px 5px 5px;  /* Top padding reduced to 5px */
     display: flex;
     gap: 10px;
 }
