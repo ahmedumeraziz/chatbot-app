@@ -92,7 +92,7 @@ if not st.session_state.ready:
             st.error(f"Failed to load document: {e}")
             st.stop()
 
-st.title("📞 CRM Assistant")
+#st.title("📞 CRM Assistant")
 
 for sender, msg in st.session_state.chat_history:
     st.markdown(f"**{sender}:** {msg}")
