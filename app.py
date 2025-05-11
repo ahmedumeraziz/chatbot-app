@@ -65,12 +65,12 @@ st.markdown("""
 
 .message-input {
     flex: 1;
-    padding: 5px 10px;  /* Reduced vertical padding */
+    padding: 25px 10px;  /* Reduced vertical padding */
     border: 1px solid #ddd;
     border-radius: 24px;
     outline: none;
     font-size: 14px;
-    margin-top: 5px;  /* Added direct margin control */
+    margin-top: 15px;  /* Added direct margin control */
 }
 
 .send-button {
