@@ -205,7 +205,7 @@ if not st.session_state.ready:
             st.stop()
 
 # UI
-st.title("📞 CRM Assistant")
+# st.title("📞 CRM Assistant")
 
 # Chat messages
 for sender, msg in st.session_state.chat_history:
