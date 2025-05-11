@@ -8,9 +8,14 @@ from deep_translator import GoogleTranslator
 # Custom CSS for chat interface
 st.markdown("""
 <style>
+/* Remove form submit instructions */
+.stFormSubmitContent {
+    visibility: hidden;
+}
+
 /* Main chat messages area */
 .chat-messages {
-    padding-bottom: 100px; /* Space for fixed input */
+    padding-bottom: 100px;
 }
 
 /* Message bubbles */
@@ -53,7 +58,7 @@ st.markdown("""
 .input-wrapper {
     max-width: 800px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 20px 15px 20px;
     display: flex;
     gap: 10px;
 }
@@ -166,9 +171,9 @@ Context:
 Question: {query}
 
 Instructions:
-- Provide a short, clear, professional response (2–4 sentences).
-- Answer **only** from the above context.
-- Do **not** mention the document or repeat the question.
+- Provide a short, clear, professional response (2–4 sentences)
+- Answer **only** from the above context
+- Do **not** mention the document or repeat the question
 
 Answer:"""
 
@@ -205,13 +210,11 @@ if not st.session_state.ready:
             st.stop()
 
 # UI
-#st.title("#### Live Chat")
-#st.markdown("#### Live Chat")
 st.markdown(
-    """  <style>   h4 { text-align: center;  }  </style>   """,
-    unsafe_allow_html=True, )
+    """<style>h4 {text-align: center;}</style>""",
+    unsafe_allow_html=True,
+)
 st.markdown("#### Live Chat", unsafe_allow_html=True)
-
 
 # Chat messages
 for sender, msg in st.session_state.chat_history:
