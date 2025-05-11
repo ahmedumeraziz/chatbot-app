@@ -1,3 +1,6 @@
+import os
+os.environ["TORCH_FORCE_CPU"] = "1"
+
 import streamlit as st
 import requests
 from sentence_transformers import SentenceTransformer
@@ -5,8 +8,8 @@ import numpy as np
 from langdetect import detect
 from deep_translator import GoogleTranslator
 
-# Load the embedder (no .to("cpu"))
-embedder = SentenceTransformer("all-MiniLM-L6-v2")
+# Load the embedder (lighter model for compatibility)
+embedder = SentenceTransformer("paraphrase-MiniLM-L3-v2")
 
 # Load secrets safely
 try:
@@ -57,12 +60,12 @@ def chunk_text(text, chunk_size=200):
     return [" ".join(words[i:i + chunk_size]) for i in range(0, len(words), chunk_size)]
 
 def embed_chunks(chunks):
-    return embedder.encode(chunks, convert_to_numpy=True)
+    return embedder.encode(chunks, convert_to_numpy=True, device='cpu')
 
 def get_relevant_chunks(query, k=3):
     if len(st.session_state.doc_embeddings) == 0:
         return []
-    query_embedding = embedder.encode([query])[0]
+    query_embedding = embedder.encode([query], device='cpu')[0]
     scores = np.dot(st.session_state.doc_embeddings, query_embedding)
     top_k = np.argsort(scores)[-k:][::-1]
     return [st.session_state.documents[i] for i in top_k]
