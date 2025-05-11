@@ -5,16 +5,16 @@ import numpy as np
 from langdetect import detect
 from deep_translator import GoogleTranslator
 
-# Load embedder model and force CPU
+# Load model
 embedder = SentenceTransformer("all-MiniLM-L6-v2")
 embedder = embedder.to("cpu")
 
-# Load GROQ API Key from Streamlit Secrets
+# GROQ API key from secrets
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 GROQ_MODEL = "llama3-8b-8192"
 GOOGLE_DOC_URL = "https://docs.google.com/document/d/196veS3lJcHJ7iJDSN47nnWO9XKHVoxBrSwtSCD8lvUM/edit?usp=sharing"
 
-# Session state
+# Initial session setup
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "documents" not in st.session_state:
@@ -24,7 +24,7 @@ if "doc_embeddings" not in st.session_state:
 if "ready" not in st.session_state:
     st.session_state.ready = False
 
-# Translation
+# --- Functions ---
 def translate_to_english(text):
     try:
         detected_lang = detect(text)
@@ -34,14 +34,12 @@ def translate_to_english(text):
     except:
         return text
 
-# Get Google Doc Text
 def get_text_from_google_doc(doc_url):
     doc_id = doc_url.split("/d/")[1].split("/")[0]
     export_url = f"https://docs.google.com/document/d/{doc_id}/export?format=txt"
     response = requests.get(export_url)
     return response.text
 
-# Chunk + Embed
 def chunk_text(text, chunk_size=200):
     words = text.split()
     return [" ".join(words[i:i+chunk_size]) for i in range(0, len(words), chunk_size)]
@@ -55,7 +53,6 @@ def get_relevant_chunks(query, k=3):
     top_k = np.argsort(scores)[-k:][::-1]
     return [st.session_state.documents[i] for i in top_k]
 
-# Generate reply from GROQ
 def generate_response(query):
     query = translate_to_english(query)
     context = "\n".join(get_relevant_chunks(query))
@@ -90,52 +87,29 @@ Answer:"""
     except Exception as e:
         return f"Error: {e}"
 
-# Load document once
-if not st.session_state.ready:
-    with st.spinner("Connecting to the Agent..."):
-        try:
-            raw_text = get_text_from_google_doc(GOOGLE_DOC_URL)
-            chunks = chunk_text(raw_text)
-            embeddings = embed_chunks(chunks)
-            st.session_state.documents = chunks
-            st.session_state.doc_embeddings = embeddings
-            st.session_state.ready = True
-            st.success("✅ Connected to Sooper Cart AI")
-        except Exception as e:
-            st.error(f"❌ Failed to process document: {e}")
-
-# --- Interface ---
+# --- Custom Styling ---
 st.markdown("""
     <style>
         .chat-wrapper {
-            width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             height: 600px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            border: 1px solid #ccc;
+            border: 1px solid #444;
             border-radius: 10px;
             overflow: hidden;
-            margin: auto;
+            margin: 0 auto;
             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            background-color: #1e1e1e;
         }
 
         .chat-container {
-            flex: 1 1 auto;
+            flex: 1;
             overflow-y: auto;
             padding: 10px;
-            background-color: #f1f0f0;
-        }
-
-        .chat-container::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .chat-container::-webkit-scrollbar-thumb {
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 3px;
+            background-color: #2c2c2c;
         }
 
         .message {
@@ -146,7 +120,6 @@ st.markdown("""
             font-size: 14px;
             line-height: 1.4;
             word-wrap: break-word;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .user {
@@ -165,49 +138,62 @@ st.markdown("""
 
         .input-box {
             height: 60px;
-            flex-shrink: 0;
-            padding: 8px;
-            background: white;
-            border-top: 1px solid #ccc;
+            display: flex;
+            padding: 6px 12px;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #1e1e1e;
+            border-top: 1px solid #444;
         }
 
         .stTextInput>div>div>input {
             border-radius: 20px !important;
             padding: 10px 15px !important;
+            background-color: #333;
+            color: white;
+        }
+
+        .stButton>button {
+            border-radius: 20px !important;
+            background-color: #0084ff;
+            color: white;
+            border: none;
+        }
+
+        body {
+            background-color: #0e0e0e;
         }
     </style>
 """, unsafe_allow_html=True)
 
+# --- Load and embed document ---
+if not st.session_state.ready:
+    with st.spinner("Connecting to the Agent..."):
+        try:
+            raw_text = get_text_from_google_doc(GOOGLE_DOC_URL)
+            chunks = chunk_text(raw_text)
+            embeddings = embed_chunks(chunks)
+            st.session_state.documents = chunks
+            st.session_state.doc_embeddings = embeddings
+            st.session_state.ready = True
+            st.success("✅ Connected to Sooper Cart AI")
+        except Exception as e:
+            st.error(f"❌ Failed to process document: {e}")
+
+# --- Chat UI ---
 if st.session_state.ready:
     st.markdown('<div class="chat-wrapper">', unsafe_allow_html=True)
-
-    # Chat area
+    
     st.markdown('<div class="chat-container">', unsafe_allow_html=True)
     for sender, msg in st.session_state.chat_history:
         role_class = "user" if sender == "You" else "ai"
         st.markdown(f'<div class="message {role_class}">{msg}</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Auto-scroll to bottom
-    st.markdown("""
-        <script>
-            setTimeout(function() {
-                var chatContainer = window.parent.document.querySelector('.chat-container');
-                if (chatContainer) {
-                    chatContainer.scrollTop = chatContainer.scrollHeight;
-                }
-            }, 200);
-        </script>
-    """, unsafe_allow_html=True)
-
-    # Input form
     with st.form("chat_form", clear_on_submit=True):
         st.markdown('<div class="input-box">', unsafe_allow_html=True)
-        col1, col2 = st.columns([5, 1])
-        with col1:
-            user_input = st.text_input("", placeholder="Type your message...", label_visibility="collapsed")
-        with col2:
-            submitted = st.form_submit_button("➤")
+        user_input = st.text_input("Type your message", placeholder="Type your message...", label_visibility="collapsed")
+        submitted = st.form_submit_button("➤")
         st.markdown('</div>', unsafe_allow_html=True)
 
     if submitted and user_input:
