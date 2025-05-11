@@ -50,7 +50,7 @@ st.markdown("""
     left: 0;
     right: 0;
     background: white;
-    padding: 15px 0;
+    padding: 5px 0 15px 0;  /* Changed from 15px 0 */
     border-top: 1px solid #e0e0e0;
     z-index: 1000;
 }
@@ -58,7 +58,7 @@ st.markdown("""
 .input-wrapper {
     max-width: 800px;
     margin: 0 auto;
-    padding: 0 20px 15px 20px;
+    padding: 5px 20px 15px 20px;  /* Changed from 0 20px 15px 20px */
     display: flex;
     gap: 10px;
 }
