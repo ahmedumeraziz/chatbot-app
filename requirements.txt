@@ -5,3 +5,4 @@ numpy
 langdetect
 deep-translator
 requests
+scikit-learn
