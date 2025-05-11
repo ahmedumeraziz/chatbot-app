@@ -91,7 +91,7 @@ Answer:"""
 
 # Prepare documents
 if not st.session_state.ready:
-    with st.spinner("Loading knowledge base..."):
+    with st.spinner("Connecting to the Agent"):
         try:
             raw_text = get_text_from_google_doc(GOOGLE_DOC_URL)
             chunks = chunk_text(raw_text)
