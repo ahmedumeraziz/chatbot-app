@@ -87,7 +87,7 @@ if not st.session_state.ready:
             chunks = chunk_text(raw_text)
             st.session_state.documents = chunks
             st.session_state.ready = True
-            st.success("Knowledge base loaded.")
+            st.success("Connected to Agent...")
         except Exception as e:
             st.error(f"Failed to load document: {e}")
             st.stop()
