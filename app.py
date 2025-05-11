@@ -8,35 +8,16 @@ from deep_translator import GoogleTranslator
 # Custom CSS for chat interface
 st.markdown("""
 <style>
-/* Main container */
-.chat-container {
-    position: fixed;
-    top: 100px;
-    bottom: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 800px;
-    background-color: #ffffff;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-/* Scrollable chat area */
+/* Main chat messages area */
 .chat-messages {
-    height: 100%;
-    overflow-y: auto;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+    padding-bottom: 100px; /* Space for fixed input */
 }
 
 /* Message bubbles */
 .message {
     max-width: 80%;
     padding: 12px 16px;
+    margin: 8px 0;
     border-radius: 18px;
     line-height: 1.4;
     font-size: 14px;
@@ -44,14 +25,14 @@ st.markdown("""
 }
 
 .user-message {
-    align-self: flex-end;
+    margin-left: auto;
     background-color: #007bff;
     color: white;
     border-bottom-right-radius: 4px;
 }
 
 .bot-message {
-    align-self: flex-start;
+    margin-right: auto;
     background-color: #e9ecef;
     color: #212529;
     border-bottom-left-radius: 4px;
@@ -102,11 +83,6 @@ st.markdown("""
 
 .send-button:hover {
     background-color: #0069d9;
-}
-
-.send-icon {
-    width: 24px;
-    height: 24px;
 }
 
 /* Adjust Streamlit default styles */
@@ -231,18 +207,12 @@ if not st.session_state.ready:
 # UI
 st.title("📞 CRM Assistant")
 
-# Chat container
-st.markdown('<div class="chat-container">', unsafe_allow_html=True)
-st.markdown('<div class="chat-messages">', unsafe_allow_html=True)
-
+# Chat messages
 for sender, msg in st.session_state.chat_history:
     if sender == "You":
         st.markdown(f'<div class="message user-message">{msg}</div>', unsafe_allow_html=True)
     else:
         st.markdown(f'<div class="message bot-message">{msg}</div>', unsafe_allow_html=True)
-
-st.markdown('</div>', unsafe_allow_html=True)  # Close chat-messages
-st.markdown('</div>', unsafe_allow_html=True)  # Close chat-container
 
 # Fixed input footer
 with st.form("chat_form", clear_on_submit=True):
