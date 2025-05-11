@@ -15,7 +15,7 @@ st.markdown("""
 
 /* Main chat messages area */
 .chat-messages {
-    padding-bottom: 120px;
+    padding-bottom: 100px;
 }
 
 /* Message bubbles */
@@ -50,7 +50,7 @@ st.markdown("""
     left: 0;
     right: 0;
     background: white;
-    padding: 0;
+    padding: 5px;
     border-top: 1px solid #e0e0e0;
     z-index: 1000;
 }
