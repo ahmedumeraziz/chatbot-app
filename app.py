@@ -208,17 +208,9 @@ if not st.session_state.ready:
 #st.title("#### Live Chat")
 #st.markdown("#### Live Chat")
 st.markdown(
-    """
-    <style>
-    h4 {
-        text-align: center;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-st.markdown("#### 📞 CRM Assistant", unsafe_allow_html=True)
+    """  <style>   h4 { text-align: center;  }  </style>   """,
+    unsafe_allow_html=True, )
+st.markdown("#### Live Chat", unsafe_allow_html=True)
 
 
 # Chat messages
