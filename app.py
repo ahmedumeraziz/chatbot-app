@@ -5,7 +5,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from langdetect import detect
 from deep_translator import GoogleTranslator
 
-# Custom CSS for chat interface with taller input box
+# Custom CSS for chat interface and to hide Streamlit branding
 st.markdown("""
 <style>
 /* Remove form submit instructions */
@@ -101,6 +101,11 @@ st.markdown("""
 /* Adjust Streamlit default styles */
 .stApp {
     background-color: #f5f5f5 !important;
+}
+
+/* Hide Streamlit menu and footer */
+#MainMenu, footer, .stDeployButton {
+    visibility: hidden;
 }
 </style>
 """, unsafe_allow_html=True)
