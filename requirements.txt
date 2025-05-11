@@ -1,6 +1,7 @@
 streamlit
 sentence-transformers
-requests
+torch
 numpy
 langdetect
 deep-translator
+requests
