@@ -18,6 +18,7 @@ if "documents" not in st.session_state:
 if "ready" not in st.session_state:
     st.session_state.ready = False
 
+# Translation
 def translate_to_english(text):
     try:
         detected_lang = detect(text)
@@ -27,16 +28,22 @@ def translate_to_english(text):
     except:
         return text
 
+# Google Docs text fetch
 def get_text_from_google_doc(doc_url):
     doc_id = doc_url.split("/d/")[1].split("/")[0]
     export_url = f"https://docs.google.com/document/d/{doc_id}/export?format=txt"
     response = requests.get(export_url)
     return response.text
 
-def chunk_text(text, chunk_size=200):
+# Chunking with overlap
+def chunk_text(text, chunk_size=200, overlap=50):
     words = text.split()
-    return [" ".join(words[i:i + chunk_size]) for i in range(0, len(words), chunk_size)]
+    chunks = []
+    for i in range(0, len(words), chunk_size - overlap):
+        chunks.append(" ".join(words[i:i + chunk_size]))
+    return chunks
 
+# TF-IDF retrieval
 def get_relevant_chunks_tfidf(query, docs, k=3):
     vectorizer = TfidfVectorizer().fit(docs + [query])
     vectors = vectorizer.transform(docs + [query])
@@ -44,19 +51,32 @@ def get_relevant_chunks_tfidf(query, docs, k=3):
     top_k = sims.argsort()[-k:][::-1]
     return [docs[i] for i in top_k]
 
+# Smarter retrieval using exact match fallback
+def get_relevant_chunks_smart(query, docs, k=3):
+    keyword_matches = [doc for doc in docs if any(word.lower() in doc.lower() for word in query.split())]
+    if keyword_matches:
+        return keyword_matches[:k]
+    return get_relevant_chunks_tfidf(query, docs, k)
+
+# GROQ response generation
 def generate_response(query):
     query = translate_to_english(query)
-    context = "\n".join(get_relevant_chunks_tfidf(query, st.session_state.documents))
+    context_chunks = get_relevant_chunks_smart(query, st.session_state.documents)
+    context = "\n".join(context_chunks)
 
-    prompt = f"""You are a helpful CRM assistant. Answer the customer's query based only on this context.
+    prompt = f"""You are a highly intelligent CRM assistant. Use the following document context to answer the customer's question precisely. 
 
 Context:
+\"\"\"
 {context}
+\"\"\"
+
+Question: {query}
 
 Instructions:
-- Keep the answer short and clear (2–4 sentences max).
-- Do NOT repeat the customer's question.
-- Reply professionally and helpfully.
+- Provide a short, clear, professional response (2–4 sentences).
+- Answer **only** from the above context.
+- Do **not** mention the document or repeat the question.
 
 Answer:"""
 
@@ -92,7 +112,8 @@ if not st.session_state.ready:
             st.error(f"Failed to load document: {e}")
             st.stop()
 
-#st.title("📞 CRM Assistant")
+# UI
+st.title("📞 CRM Assistant")
 
 for sender, msg in st.session_state.chat_history:
     st.markdown(f"**{sender}:** {msg}")
