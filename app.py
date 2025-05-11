@@ -5,6 +5,107 @@ from sklearn.metrics.pairwise import cosine_similarity
 from langdetect import detect
 from deep_translator import GoogleTranslator
 
+# Custom CSS for chat interface
+st.markdown("""
+<style>
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 70vh;
+    width: 100%;
+    margin: 0 auto;
+    background-color: #fafafa;
+    border-radius: 10px;
+    position: relative;
+    border: 1px solid #e0e0e0;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.message {
+    max-width: 80%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    line-height: 1.4;
+    font-size: 14px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.user-message {
+    align-self: flex-end;
+    background-color: #007bff;
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.bot-message {
+    align-self: flex-start;
+    background-color: #e9ecef;
+    color: #212529;
+    border-bottom-left-radius: 4px;
+}
+
+.input-area {
+    position: sticky;
+    bottom: 0;
+    padding: 15px;
+    background-color: white;
+    border-top: 1px solid #ddd;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.message-input {
+    flex: 1;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 24px;
+    outline: none;
+    font-size: 14px;
+}
+
+.message-input:focus {
+    border-color: #007bff;
+}
+
+.send-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.send-button:hover {
+    background-color: #0069d9;
+}
+
+.send-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.stSpinner > div {
+    text-align: center;
+    margin-top: 20px;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # Load secrets
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 GROQ_MODEL = "llama3-8b-8192"
@@ -115,15 +216,44 @@ if not st.session_state.ready:
 # UI
 st.title("📞 CRM Assistant")
 
+# Chat container
+st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+st.markdown('<div class="chat-messages">', unsafe_allow_html=True)
+
 for sender, msg in st.session_state.chat_history:
-    st.markdown(f"**{sender}:** {msg}")
+    if sender == "You":
+        st.markdown(f'<div class="message user-message">{msg}</div>', unsafe_allow_html=True)
+    else:
+        st.markdown(f'<div class="message bot-message">{msg}</div>', unsafe_allow_html=True)
 
-with st.form("chat_form", clear_on_submit=True):
-    user_input = st.text_input("Your message:")
-    submitted = st.form_submit_button("Send")
+st.markdown('</div>', unsafe_allow_html=True)  # Close chat-messages
 
-if submitted and user_input:
-    answer = generate_response(user_input)
-    st.session_state.chat_history.append(("You", user_input))
-    st.session_state.chat_history.append(("AI", answer))
-    st.rerun()
+# Input area
+st.markdown("""
+<div class="input-area">
+    <form id="chat_form" class="stForm" style="width: 100%; display: flex; gap: 10px; align-items: center;">
+        <input type="text" name="user_input" class="message-input" placeholder="Type your message..." autocomplete="off">
+        <button type="submit" class="send-button">
+            <svg class="send-icon" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
+            </svg>
+        </button>
+    </form>
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown('</div>', unsafe_allow_html=True)  # Close chat-container
+
+# Handle form submission
+if st._is_running_with_streamlit:
+    from streamlit.runtime.scriptrunner import get_script_run_ctx
+    ctx = get_script_run_ctx()
+    if ctx and hasattr(ctx, 'form_data'):
+        form_data = ctx.form_data
+        if 'chat_form' in form_data:
+            user_input = form_data['chat_form']['user_input']
+            if user_input:
+                answer = generate_response(user_input)
+                st.session_state.chat_history.append(("You", user_input))
+                st.session_state.chat_history.append(("AI", answer))
+                st.rerun()
