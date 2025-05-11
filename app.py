@@ -99,12 +99,11 @@ if not st.session_state.ready:
             st.session_state.documents = chunks
             st.session_state.doc_embeddings = embeddings
             st.session_state.ready = True
-            st.success("Connected to CRM AI.")
+            st.success("Connected to Agent.")
         except Exception as e:
             st.error(f"Failed to load document: {e}")
 
 # Chat interface
-st.title("🧠 CRM Assistant")
 
 for sender, msg in st.session_state.chat_history:
     st.markdown(f"**{sender}:** {msg}")
