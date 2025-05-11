@@ -206,7 +206,20 @@ if not st.session_state.ready:
 
 # UI
 #st.title("#### Live Chat")
-st.markdown("#### Live Chat")
+#st.markdown("#### Live Chat")
+st.markdown(
+    """
+    <style>
+    h4 {
+        text-align: center;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown("#### 📞 CRM Assistant", unsafe_allow_html=True)
+
 
 # Chat messages
 for sender, msg in st.session_state.chat_history:
