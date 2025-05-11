@@ -5,16 +5,15 @@ import numpy as np
 from langdetect import detect
 from deep_translator import GoogleTranslator
 
-# Load model
-embedder = SentenceTransformer("all-MiniLM-L6-v2")
-embedder = embedder.to("cpu")
+# Load embedder
+embedder = SentenceTransformer("all-MiniLM-L6-v2").to("cpu")
 
-# GROQ API key from secrets
+# Secrets & constants
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 GROQ_MODEL = "llama3-8b-8192"
 GOOGLE_DOC_URL = "https://docs.google.com/document/d/196veS3lJcHJ7iJDSN47nnWO9XKHVoxBrSwtSCD8lvUM/edit?usp=sharing"
 
-# Initial session setup
+# Session state
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "documents" not in st.session_state:
@@ -24,7 +23,7 @@ if "doc_embeddings" not in st.session_state:
 if "ready" not in st.session_state:
     st.session_state.ready = False
 
-# --- Functions ---
+# Text translation
 def translate_to_english(text):
     try:
         detected_lang = detect(text)
@@ -34,6 +33,7 @@ def translate_to_english(text):
     except:
         return text
 
+# Document handling
 def get_text_from_google_doc(doc_url):
     doc_id = doc_url.split("/d/")[1].split("/")[0]
     export_url = f"https://docs.google.com/document/d/{doc_id}/export?format=txt"
@@ -53,6 +53,7 @@ def get_relevant_chunks(query, k=3):
     top_k = np.argsort(scores)[-k:][::-1]
     return [st.session_state.documents[i] for i in top_k]
 
+# Response generation
 def generate_response(query):
     query = translate_to_english(query)
     context = "\n".join(get_relevant_chunks(query))
@@ -87,88 +88,9 @@ Answer:"""
     except Exception as e:
         return f"Error: {e}"
 
-# --- Custom Styling ---
-st.markdown("""
-    <style>
-        .chat-wrapper {
-            max-width: 420px;
-            height: 600px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            border: 1px solid #444;
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 0 auto;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-            background-color: #1e1e1e;
-        }
-
-        .chat-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-            background-color: #2c2c2c;
-        }
-
-        .message {
-            padding: 10px 14px;
-            margin: 6px 0;
-            border-radius: 18px;
-            max-width: 90%;
-            font-size: 14px;
-            line-height: 1.4;
-            word-wrap: break-word;
-        }
-
-        .user {
-            background-color: #0084ff;
-            color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 0;
-        }
-
-        .ai {
-            background-color: #e5e5ea;
-            color: black;
-            align-self: flex-start;
-            border-bottom-left-radius: 0;
-        }
-
-        .input-box {
-            height: 60px;
-            display: flex;
-            padding: 6px 12px;
-            align-items: center;
-            justify-content: space-between;
-            background-color: #1e1e1e;
-            border-top: 1px solid #444;
-        }
-
-        .stTextInput>div>div>input {
-            border-radius: 20px !important;
-            padding: 10px 15px !important;
-            background-color: #333;
-            color: white;
-        }
-
-        .stButton>button {
-            border-radius: 20px !important;
-            background-color: #0084ff;
-            color: white;
-            border: none;
-        }
-
-        body {
-            background-color: #0e0e0e;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-# --- Load and embed document ---
+# Load document on first run
 if not st.session_state.ready:
-    with st.spinner("Connecting to the Agent..."):
+    with st.spinner("Loading CRM knowledge base..."):
         try:
             raw_text = get_text_from_google_doc(GOOGLE_DOC_URL)
             chunks = chunk_text(raw_text)
@@ -176,23 +98,93 @@ if not st.session_state.ready:
             st.session_state.documents = chunks
             st.session_state.doc_embeddings = embeddings
             st.session_state.ready = True
-            st.success("✅ Connected to Sooper Cart AI")
         except Exception as e:
             st.error(f"❌ Failed to process document: {e}")
 
-# --- Chat UI ---
+# Styling to match modern chat
+st.markdown("""
+    <style>
+    .chat-box {
+        max-width: 420px;
+        height: 600px;
+        margin: 0 auto;
+        background: #f5f5f5;
+        border: 1px solid #ccc;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .chat-history {
+        flex: 1;
+        padding: 15px;
+        overflow-y: auto;
+        background-color: #fff;
+    }
+    .message {
+        padding: 10px 14px;
+        margin: 6px 0;
+        border-radius: 16px;
+        max-width: 80%;
+        font-size: 14px;
+        line-height: 1.4;
+        word-wrap: break-word;
+        display: inline-block;
+    }
+    .user-msg {
+        background-color: #0084ff;
+        color: white;
+        margin-left: auto;
+        border-bottom-right-radius: 0;
+    }
+    .ai-msg {
+        background-color: #e1e1e1;
+        color: black;
+        margin-right: auto;
+        border-bottom-left-radius: 0;
+    }
+    .input-area {
+        padding: 10px;
+        background: #f1f1f1;
+        display: flex;
+        border-top: 1px solid #ddd;
+    }
+    .input-area input[type="text"] {
+        flex: 1;
+        padding: 10px 16px;
+        border-radius: 24px 0 0 24px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+        outline: none;
+    }
+    .input-area button {
+        background: #0084ff;
+        color: white;
+        border: none;
+        padding: 0 18px;
+        font-size: 18px;
+        border-radius: 0 24px 24px 0;
+        cursor: pointer;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# --- CHAT UI ---
 if st.session_state.ready:
-    st.markdown('<div class="chat-wrapper">', unsafe_allow_html=True)
-    
-    st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+    st.markdown('<div class="chat-box">', unsafe_allow_html=True)
+
+    # Chat history display
+    st.markdown('<div class="chat-history">', unsafe_allow_html=True)
     for sender, msg in st.session_state.chat_history:
-        role_class = "user" if sender == "You" else "ai"
-        st.markdown(f'<div class="message {role_class}">{msg}</div>', unsafe_allow_html=True)
+        css_class = "user-msg" if sender == "You" else "ai-msg"
+        st.markdown(f'<div class="message {css_class}">{msg}</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
+    # Chat input form
     with st.form("chat_form", clear_on_submit=True):
-        st.markdown('<div class="input-box">', unsafe_allow_html=True)
-        user_input = st.text_input("Type your message", placeholder="Type your message...", label_visibility="collapsed")
+        st.markdown('<div class="input-area">', unsafe_allow_html=True)
+        user_input = st.text_input("Message", placeholder="Type message here...", label_visibility="collapsed")
         submitted = st.form_submit_button("➤")
         st.markdown('</div>', unsafe_allow_html=True)
 
