@@ -68,13 +68,13 @@ st.markdown("""
 /* Taller input field */
 .message-input {
     flex: 1;
-    padding: 20px 15px;
+    padding: 10px 10px;
     border: 1px solid #ddd;
     border-radius: 24px;
     outline: none;
     font-size: 14px;
     line-height: 1.5;
-    min-height: 48px;
+    min-height: 68px;
     margin: 0;
     resize: vertical;
 }
