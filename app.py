@@ -5,17 +5,17 @@ from sklearn.metrics.pairwise import cosine_similarity
 from langdetect import detect
 from deep_translator import GoogleTranslator
 
-# Custom CSS for chat interface
+# Custom CSS for chat interface with taller input box
 st.markdown("""
 <style>
 /* Remove form submit instructions */
 .stFormSubmitContent {
-    visibility: hidden;
+    display: none;
 }
 
 /* Main chat messages area */
 .chat-messages {
-    padding-bottom: 100px;
+    padding-bottom: 120px;
 }
 
 /* Message bubbles */
@@ -50,29 +50,36 @@ st.markdown("""
     left: 0;
     right: 0;
     background: white;
-    padding: 0 0 10px 0;  /* Reduced bottom padding */
+    padding: 0;
     border-top: 1px solid #e0e0e0;
     z-index: 1000;
 }
 
+/* Input wrapper */
 .input-wrapper {
     max-width: 800px;
     margin: 0 auto;
-    padding: 5px 5px 5px 5px;  /* Top padding reduced to 5px */
+    padding: 2px 15px 10px 15px;
     display: flex;
-    gap: 10px;
+    gap: 8px;
+    align-items: center;
 }
 
+/* Taller input field */
 .message-input {
     flex: 1;
-    padding: 25px 10px;  /* Reduced vertical padding */
+    padding: 12px 15px;
     border: 1px solid #ddd;
     border-radius: 24px;
     outline: none;
     font-size: 14px;
-    margin-top: 15px;  /* Added direct margin control */
+    line-height: 1.5;
+    min-height: 48px;
+    margin: 0;
+    resize: vertical;
 }
 
+/* Send button */
 .send-button {
     width: 48px;
     height: 48px;
@@ -94,11 +101,6 @@ st.markdown("""
 /* Adjust Streamlit default styles */
 .stApp {
     background-color: #f5f5f5 !important;
-}
-
-.stTitle {
-    text-align: center;
-    padding: 20px 0 !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -224,7 +226,7 @@ for sender, msg in st.session_state.chat_history:
     else:
         st.markdown(f'<div class="message bot-message">{msg}</div>', unsafe_allow_html=True)
 
-# Fixed input footer
+# Fixed input footer with taller input box
 with st.form("chat_form", clear_on_submit=True):
     st.markdown('<div class="input-footer">', unsafe_allow_html=True)
     st.markdown('<div class="input-wrapper">', unsafe_allow_html=True)
