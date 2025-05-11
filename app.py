@@ -50,7 +50,7 @@ st.markdown("""
     left: 0;
     right: 0;
     background: white;
-    padding: 5px 0 15px 0;  /* Changed from 15px 0 */
+    padding: 0 0 10px 0;  /* Reduced bottom padding */
     border-top: 1px solid #e0e0e0;
     z-index: 1000;
 }
@@ -58,18 +58,19 @@ st.markdown("""
 .input-wrapper {
     max-width: 800px;
     margin: 0 auto;
-    padding: 5px 20px 15px 20px;  /* Changed from 0 20px 15px 20px */
+    padding: 5px 20px 10px 20px;  /* Top padding reduced to 5px */
     display: flex;
     gap: 10px;
 }
 
 .message-input {
     flex: 1;
-    padding: 20px 15px;
+    padding: 8px 15px;  /* Reduced vertical padding */
     border: 1px solid #ddd;
     border-radius: 24px;
     outline: none;
     font-size: 14px;
+    margin-top: 5px;  /* Added direct margin control */
 }
 
 .send-button {
