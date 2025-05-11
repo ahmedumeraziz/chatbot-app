@@ -65,7 +65,7 @@ st.markdown("""
 
 .message-input {
     flex: 1;
-    padding: 8px 15px;  /* Reduced vertical padding */
+    padding: 5px 10px;  /* Reduced vertical padding */
     border: 1px solid #ddd;
     border-radius: 24px;
     outline: none;
