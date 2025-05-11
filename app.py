@@ -5,15 +5,16 @@ import numpy as np
 from langdetect import detect
 from deep_translator import GoogleTranslator
 
-# Load model and GROQ API key from secrets
+# Load model and force CPU (avoid GPU error on Streamlit Cloud)
 embedder = SentenceTransformer("all-MiniLM-L6-v2")
-embedder = embedder.to("cpu")  # Force CPU usage to avoid Streamlit Cloud GPU errors
+embedder = embedder.to("cpu")
 
+# Use secret API key
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 GROQ_MODEL = "llama3-8b-8192"
 GOOGLE_DOC_URL = "https://docs.google.com/document/d/196veS3lJcHJ7iJDSN47nnWO9XKHVoxBrSwtSCD8lvUM/edit?usp=sharing"
 
-# Session setup
+# Session state
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "documents" not in st.session_state:
@@ -23,7 +24,6 @@ if "doc_embeddings" not in st.session_state:
 if "ready" not in st.session_state:
     st.session_state.ready = False
 
-# Translation function
 def translate_to_english(text):
     try:
         detected_lang = detect(text)
@@ -33,14 +33,12 @@ def translate_to_english(text):
     except:
         return text
 
-# Get Google Doc text
 def get_text_from_google_doc(doc_url):
     doc_id = doc_url.split("/d/")[1].split("/")[0]
     export_url = f"https://docs.google.com/document/d/{doc_id}/export?format=txt"
     response = requests.get(export_url)
     return response.text
 
-# Chunk and embed
 def chunk_text(text, chunk_size=200):
     words = text.split()
     return [" ".join(words[i:i+chunk_size]) for i in range(0, len(words), chunk_size)]
@@ -54,7 +52,6 @@ def get_relevant_chunks(query, k=3):
     top_k = np.argsort(scores)[-k:][::-1]
     return [st.session_state.documents[i] for i in top_k]
 
-# Generate concise response
 def generate_response(query):
     query = translate_to_english(query)
     context = "\n".join(get_relevant_chunks(query))
@@ -89,7 +86,7 @@ Answer:"""
     except Exception as e:
         return f"Error: {e}"
 
-# Process the document
+# Load document
 if not st.session_state.ready:
     with st.spinner("Connecting to the Agent..."):
         try:
@@ -103,7 +100,7 @@ if not st.session_state.ready:
         except Exception as e:
             st.error(f"❌ Failed to process document: {e}")
 
-# --- Chat UI ---
+# UI
 st.markdown("""
     <style>
         .chat-wrapper {
