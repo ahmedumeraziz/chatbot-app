@@ -174,9 +174,10 @@ Context:
 Question: {query}
 
 Instructions:
-- Provide a short, clear, professional response (2–4 sentences)
+- Provide a short, clear, professional response (1–2 sentences)
 - Answer **only** from the above context
 - Do **not** mention the document or repeat the question
+- If answer is not availbale request customer to contact info@soopercart.com
 
 Answer:"""
 
