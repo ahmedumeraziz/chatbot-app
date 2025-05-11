@@ -1,11 +1,12 @@
 import streamlit as st
 import requests
+import time
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from langdetect import detect
 from deep_translator import GoogleTranslator
 
-# Custom CSS for chat interface with taller input box
+# Custom CSS for chat interface with animated "Replying..."
 st.markdown("""
 <style>
 /* Remove form submit instructions */
@@ -101,6 +102,22 @@ st.markdown("""
 /* Adjust Streamlit default styles */
 .stApp {
     background-color: #f5f5f5 !important;
+}
+
+/* Animated replying dots */
+@keyframes blink {
+    0% { opacity: 0.2; }
+    20% { opacity: 1; }
+    100% { opacity: 0.2; }
+}
+.dot1, .dot2, .dot3 {
+    animation: blink 1.4s infinite;
+}
+.dot2 {
+    animation-delay: 0.2s;
+}
+.dot3 {
+    animation-delay: 0.4s;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -214,11 +231,7 @@ if not st.session_state.ready:
             st.stop()
 
 # UI
-st.markdown(
-    """<style>h4 {text-align: center;}</style>""",
-    unsafe_allow_html=True,
-)
-st.markdown("#### Live Chat", unsafe_allow_html=True)
+st.markdown("<h4>Live Chat</h4>", unsafe_allow_html=True)
 
 # Chat messages
 for sender, msg in st.session_state.chat_history:
@@ -248,7 +261,19 @@ with st.form("chat_form", clear_on_submit=True):
 
 # Handle form submission
 if submitted and user_input:
-    answer = generate_response(user_input)
     st.session_state.chat_history.append(("You", user_input))
+
+    # Show "Replying..." animation
+    placeholder = st.empty()
+    with placeholder.container():
+        st.markdown(
+            '<div class="message bot-message">Replying<span class="dot1">.</span><span class="dot2">.</span><span class="dot3">.</span></div>',
+            unsafe_allow_html=True
+        )
+    time.sleep(2)
+
+    # Generate and display actual response
+    answer = generate_response(user_input)
+    placeholder.markdown(f'<div class="message bot-message">{answer}</div>', unsafe_allow_html=True)
     st.session_state.chat_history.append(("AI", answer))
     st.rerun()
