@@ -205,7 +205,8 @@ if not st.session_state.ready:
             st.stop()
 
 # UI
-st.title("#### Live Chat")
+#st.title("#### Live Chat")
+st.markdown("#### Live Chat")
 
 # Chat messages
 for sender, msg in st.session_state.chat_history:
